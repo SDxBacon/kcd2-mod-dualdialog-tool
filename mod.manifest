@@ -3,8 +3,7 @@
     <info>
         <name>Dual Dialog</name>
         <modid>dualdialog</modid>
-        <description>Displays dialogues in both the selected language and English, but only when
-            the game is set to Traditional Chinese, Simplified Chinese, Japanese, or Korean.</description>
+        <description>Displays dialogues in both the selected language and English.</description>
         <author>SDxBacon</author>
         <version>1.0.0</version>
         <created_on>17 Feb 2025</created_on>

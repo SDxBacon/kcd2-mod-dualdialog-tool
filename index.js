@@ -3,22 +3,31 @@ const path = require("path");
 
 const AdmZip = require("adm-zip");
 
-// target languages: Chinese (Traditional), Chinese (Simplified), Japanese, Korean
+// target languages
 const targetLanguagePaks = [
   "Chineset_xml.pak",
   "Chineses_xml.pak",
   "Japanese_xml.pak",
   "Korean_xml.pak",
+  "Spanish_xml.pak",
+  "French_xml.pak",
+  "German_xml.pak",
+  "Italian_xml.pak",
+  "Polish_xml.pak",
+  "Russian_xml.pak",
+  "Czech_xml.pak",
+  "Turkish_xml.pak",
+  "Ukrainian_xml.pak",
+  "Portuguese_xml.pak",
 ];
 
 // ui dialog file name
 const uiDialogFilename = "text_ui_dialog.xml";
 
 // Create the output directory if it does not exist
-const outputDir = path.join("./", "build", "DualDialog");
-const outputLocalizationDir = path.join(outputDir, "Localization");
-if (!fs.existsSync(outputLocalizationDir)) {
-  fs.mkdirSync(outputLocalizationDir, { recursive: true });
+const outputDir = path.join("./", "build");
+if (!fs.existsSync(outputDir)) {
+  fs.mkdirSync(outputDir, { recursive: true });
 }
 
 // localization folder path
@@ -83,16 +92,38 @@ function run(pakName) {
   console.log(`Updated XML has been saved to: ${xmlFilePath}`);
 
   // Create a new pak file from the temporary working directory
-  const newPakFilepath = path.join(outputLocalizationDir, pakName);
+  const newPaksDir = path.join('./tmp', "paks");
+  if (!fs.existsSync(newPaksDir)) {
+    fs.mkdirSync(newPaksDir);
+  }
   const outputZip = new AdmZip();
   outputZip.addLocalFolder(tmpWorkingDir);
-  outputZip.writeZip(newPakFilepath);
+  outputZip.writeZip(path.join(newPaksDir, pakName));
 }
 
-function copyModManifest() {
-  const modManifestPath = "./mod.manifest";
-  const outputManifestPath = path.join(outputDir, "mod.manifest");
-  fs.copyFileSync(modManifestPath, outputManifestPath);
+function createZipPerLanguage() {
+  targetLanguagePaks.forEach((languagePak) => {
+    const bundleName = "Dual Dialog - " + languagePak.replace("_xml.pak", "" + ".zip");
+    const pakPath = path.join('./tmp', 'paks', languagePak);
+
+    const outputZip = new AdmZip();
+    outputZip.addLocalFile(pakPath, "Localization");
+    outputZip.addLocalFile("./mod.manifest")
+    outputZip.writeZip(path.join(outputDir, bundleName));
+  });
+}
+
+function createBundleZip() {
+  const bundleName = "Dual Dialog.zip";
+  const outputZip = new AdmZip();
+
+  targetLanguagePaks.forEach((languagePak) => {
+    const pakPath = path.join('./tmp', 'paks', languagePak);
+    outputZip.addLocalFile(pakPath, "Localization");
+  });
+
+  outputZip.addLocalFile("./mod.manifest")
+  outputZip.writeZip(path.join(outputDir, bundleName));
 }
 
 // IIFE to run the script
@@ -105,7 +136,11 @@ function copyModManifest() {
     run(languagePak);
   });
 
-  // Copy mod.manifest to the output directory
-  copyModManifest();
-  console.log("Copy mod.manifest to the output directory, DONE");
+  // Create the bundle zip
+  createBundleZip();
+  console.log("Create bundle zip, DONE");
+
+  // Create zip per language
+  createZipPerLanguage();
+  console.log("Create zip per language, DONE");
 })();
