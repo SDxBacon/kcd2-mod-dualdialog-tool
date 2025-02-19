@@ -26,6 +26,5 @@ export function zipPakDataToBuffer(pakFolderInTemp, updatedXml) {
   tempZip.addLocalFolder(pakFolderInTemp);
   // Update the `text_ui_dialog` XML file in the zip
   tempZip.updateFile(uiDialogFilename, Buffer.from(updatedXml, "utf8"));
-  tempZip.writeZip(`./tmp/${Math.random()}.pak`);
   return tempZip.toBuffer();
 }
