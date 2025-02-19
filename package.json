@@ -3,6 +3,7 @@
   "version": "1.0.1",
   "description": "A modding tool for Kingdom Come: Deliverance 2 that enables dual-language display for in-game dialogues. This tool allows players to see both the original English text and their selected language simultaneously, enhancing language learning and immersion.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

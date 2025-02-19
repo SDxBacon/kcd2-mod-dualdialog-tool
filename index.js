@@ -1,65 +1,30 @@
-const fs = require("fs");
-const path = require("path");
+import fs from "fs";
+import path from "path";
+import AdmZip from "adm-zip";
 
-const AdmZip = require("adm-zip");
+import { unzipPak, zipPakDataToBuffer } from "./src/zip.js";
 
-// target languages
-const targetLanguagePaks = [
-  "Chineset_xml.pak",
-  "Chineses_xml.pak",
-  "Japanese_xml.pak",
-  "Korean_xml.pak",
-  "Spanish_xml.pak",
-  "French_xml.pak",
-  "German_xml.pak",
-  "Italian_xml.pak",
-  "Polish_xml.pak",
-  "Russian_xml.pak",
-  "Czech_xml.pak",
-  "Turkish_xml.pak",
-  "Ukrainian_xml.pak",
-  "Portuguese_xml.pak",
-];
+import {
+  regexp,
+  languagePackageFiles,
+  tempStoragePath,
+  uiDialogFilename,
+} from "./src/constants.js";
 
-// ui dialog file name
-const uiDialogFilename = "text_ui_dialog.xml";
+import {
+  getSuffixByPakName,
+  prepareWorkingDirectory,
+  checkLocalizationAssets,
+} from "./src/utils.js";
 
-// Create the output directory if it does not exist
-const outputDir = path.join("./", "build");
-if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir, { recursive: true });
-}
+const allLangsZip = new AdmZip();
+const allLangsWithSeqZip = new AdmZip();
 
-// localization folder path
-const localizationPath = (
-  process.env.KCD2_LOCALIZATION_SOURCE ?? "PATH_TO_KCDM2_LOCALIZATION_FOLDER"
-).replace(/^"|"$/g, "");
-
-// assert localization path exists
-function assertLanguagePaksExist() {
-  targetLanguagePaks.forEach((languagePak) => {
-    const languagePakPath = path.resolve(localizationPath, languagePak);
-    if (!fs.existsSync(languagePakPath)) {
-      console.error(`Error: Localization not found -> ${languagePakPath}`);
-      process.exit(1); // Exit the script with an error code
-    }
-  });
-}
-
-function run(pakName) {
-  const pakFilepath = path.join(localizationPath, pakName);
-  const tmpWorkingDir = path.join("./tmp/", pakName);
-
-  // Extract the pak file to temporary working directory
-  new AdmZip(pakFilepath).extractAllTo(tmpWorkingDir, true);
-
+function processPakByLanguage(pakFilename) {
   // Read the `text_ui_dialog.xml` file
-  const xmlFilePath = path.join(tmpWorkingDir, uiDialogFilename);
-  const xmlData = fs.readFileSync(xmlFilePath, "utf8");
-
-  // Regular expression: Ensures the first <Cell> does not contain "seq"
-  const regex =
-    /<Row><Cell>((?!.*seq).*?)<\/Cell><Cell>(.*?)<\/Cell><Cell>(.*?)<\/Cell><\/Row>/g;
+  const pakFolderInTemp = path.join(tempStoragePath, pakFilename);
+  const textUIDialogXmlPath = path.join(pakFolderInTemp, uiDialogFilename);
+  const xmlData = fs.readFileSync(textUIDialogXmlPath, "utf8");
 
   // Function to check if $2 is almost contained in $3 (except for one extra character)
   function isNearlyContained(smaller, larger) {
@@ -72,75 +37,102 @@ function run(pakName) {
     return false;
   }
 
-  // Perform the replacement with a callback function for row-based validation
-  const updatedXml = xmlData.replace(regex, (match, $1, $2, $3) => {
-    // Condition 1: If $2 is fully contained in $3 or is "almost contained", do not replace
-    if ($3.includes($2) || isNearlyContained($2, $3)) {
-      return match; // Keep it unchanged
+  let match;
+  let updatedXml = "<Table>\n";
+  let updatedXmlWithSeq = "<Table>\n";
+
+  while ((match = regexp.exec(xmlData)) !== null) {
+    const [fullMatch, $1, $2, $3] = match;
+
+    const unchangedRow = `${fullMatch}\n`;
+    const updatedRow = `<Row><Cell>${$1}</Cell><Cell>${$2}</Cell><Cell>${$3}\\n${$2}</Cell></Row>\n`;
+
+    if (
+      // Condition 1: If $2 is fully contained in $3 or is "almost contained", do not replace
+      $3.includes($2) ||
+      isNearlyContained($2, $3) ||
+      // Condition 2: If $2 is exactly equal to $3, do not replace
+      $2 === $3
+    ) {
+      // Keep it unchanged
+      updatedXml += unchangedRow;
+      updatedXmlWithSeq += unchangedRow;
+      continue;
     }
-    // Condition 2: If $2 is exactly equal to $3, do not replace
-    if ($2 === $3) {
-      return match; // Keep it unchanged
-    }
-    // Apply replacement: Append "\n" between $3 and $2
-    return `<Row><Cell>${$1}</Cell><Cell>${$2}</Cell><Cell>${$3}\\n${$2}</Cell></Row>`;
-  });
 
-  // Overwrite the updated XML back to `text_ui_dialog.xml`
-  fs.writeFileSync(xmlFilePath, updatedXml, "utf8");
-
-  console.log(`Updated XML has been saved to: ${xmlFilePath}`);
-
-  // Create a new pak file from the temporary working directory
-  const newPaksDir = path.join('./tmp', "paks");
-  if (!fs.existsSync(newPaksDir)) {
-    fs.mkdirSync(newPaksDir);
+    updatedXml += $1.includes("seq") ? unchangedRow : updatedRow;
+    updatedXmlWithSeq += updatedRow;
   }
-  const outputZip = new AdmZip();
-  outputZip.addLocalFolder(tmpWorkingDir);
-  outputZip.writeZip(path.join(newPaksDir, pakName));
+
+  // Add the closing tag
+  updatedXml += "</Table>";
+  updatedXmlWithSeq += "</Table>";
+
+  // 1. packing the data with updated XML of pak file in memory
+  const pakFileBuffer = zipPakDataToBuffer(pakFolderInTemp, updatedXml);
+  const pakFileWithSeqBuffer = zipPakDataToBuffer(
+    pakFolderInTemp,
+    updatedXmlWithSeq
+  );
+
+  // 2. generate zip of the language
+  const pakFilepath = path.join("Localization", pakFilename);
+  const zipFilename = `Dual Dialog - ${getSuffixByPakName(pakFilename)}.zip`;
+
+  let tempZip = new AdmZip();
+  // add mod.manifest to the zip and set the path to "Dual Dialog/mod.manifest"
+  tempZip.addLocalFile("./mod.manifest", path.join("Dual Dialog"));
+  // add mod.manifest to the zip and set the path to "Dual Dialog with Dialog Sequence/mod.manifest"
+  tempZip.addLocalFile(
+    "./mod.manifest",
+    path.join("Dual Dialog with Dialog Sequence")
+  );
+
+  // add the pak file to the zip and set the path to "Dual Dialog/Localization/<pakFilename>"
+  tempZip.addFile(path.join("Dual Dialog", pakFilepath), pakFileBuffer);
+  // add the pak file to the zip and set the path to "Dual Dialog with Dialog Sequence/Localization/<pakFilename>"
+  tempZip.addFile(
+    path.join("Dual Dialog with Dialog Sequence", pakFilepath),
+    pakFileWithSeqBuffer
+  );
+  // output the zip to the build directory
+  tempZip.writeZip(path.join("./build", zipFilename));
+
+  // 3. add the zip to the allLangsZip and allLangsWithSeqZip
+  allLangsZip.addFile(path.join("Localization", pakFilename), pakFileBuffer);
+  allLangsWithSeqZip.addFile(
+    path.join("Localization", pakFilename),
+    pakFileWithSeqBuffer
+  );
 }
 
-function createZipPerLanguage() {
-  targetLanguagePaks.forEach((languagePak) => {
-    const bundleName = "Dual Dialog - " + languagePak.replace("_xml.pak", "" + ".zip");
-    const pakPath = path.join('./tmp', 'paks', languagePak);
-
-    const outputZip = new AdmZip();
-    outputZip.addLocalFile(pakPath, "Localization");
-    outputZip.addLocalFile("./mod.manifest")
-    outputZip.writeZip(path.join(outputDir, bundleName));
-  });
-}
-
-function createBundleZip() {
-  const bundleName = "Dual Dialog.zip";
-  const outputZip = new AdmZip();
-
-  targetLanguagePaks.forEach((languagePak) => {
-    const pakPath = path.join('./tmp', 'paks', languagePak);
-    outputZip.addLocalFile(pakPath, "Localization");
-  });
-
-  outputZip.addLocalFile("./mod.manifest")
-  outputZip.writeZip(path.join(outputDir, bundleName));
+function createAllLangsZip() {
+  allLangsZip.addLocalFile("./mod.manifest");
+  allLangsZip.writeZip(path.join("./build", "Dual Dialog.zip"));
+  allLangsWithSeqZip.addLocalFile("./mod.manifest");
+  allLangsWithSeqZip.writeZip(
+    path.join("./build", "Dual Dialog with Dialog Sequence.zip")
+  );
 }
 
 // IIFE to run the script
 (function main() {
-  // First, assert that the language paks exist
-  assertLanguagePaksExist();
+  // First, assert localization paks exist
+  checkLocalizationAssets();
 
-  // Run the script for each language pak
-  targetLanguagePaks.forEach((languagePak) => {
-    run(languagePak);
-  });
+  // Then, prepare the working directories
+  prepareWorkingDirectory();
+
+  for (const pak of languagePackageFiles) {
+    // unpack the pak files
+    unzipPak(pak);
+    // Run the script for each language pak
+    processPakByLanguage(pak);
+    //
+    console.log(`Create zip by language for ${pak}, DONE`);
+  }
 
   // Create the bundle zip
-  createBundleZip();
+  createAllLangsZip();
   console.log("Create bundle zip, DONE");
-
-  // Create zip per language
-  createZipPerLanguage();
-  console.log("Create zip per language, DONE");
 })();
