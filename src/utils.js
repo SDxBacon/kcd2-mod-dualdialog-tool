@@ -6,6 +6,7 @@ import {
   tempStoragePath,
   localizationSourcePath,
   languagePackageFiles,
+  uiDialogFilename,
 } from "./constants.js";
 
 /**
@@ -57,4 +58,30 @@ export function getSuffixByPakName(pakName) {
 
   if (!result) throw new Error(`Invalid pakName: ${pakName}`);
   return result;
+}
+
+/**
+ * Function to check if $2 is almost contained in $3 (except for one extra character)
+ */
+export function isNearlyContained(smaller, larger) {
+  if (larger.startsWith(smaller) && larger.length === smaller.length + 1) {
+    return true; // $3 starts with $2 but has one extra character
+  }
+  if (larger.endsWith(smaller) && larger.length === smaller.length + 1) {
+    return true; // $3 ends with $2 but has one extra character
+  }
+  return false;
+}
+
+/**
+ *  Create a pak info object by the pak file name
+ * @param {string} pakFileName
+ * @returns
+ */
+export function createPakInfoByFileName(pakFileName) {
+  return {
+    name: pakFileName,
+    unpackedFolderPath: path.join(tempStoragePath, pakFileName),
+    xmlFilePath: path.join(tempStoragePath, pakFileName, uiDialogFilename),
+  };
 }

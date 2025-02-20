@@ -9,6 +9,7 @@ export const localizationSourcePath = (
  * languages to extract from the localization pak files
  */
 export const languagePackageFiles = [
+  "English_xml.pak",
   "Chineset_xml.pak",
   "Chineses_xml.pak",
   "Japanese_xml.pak",

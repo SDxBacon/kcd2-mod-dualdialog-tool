@@ -17,6 +17,8 @@ import {
   checkLocalizationAssets,
 } from "./src/utils.js";
 
+import { processEnglish } from "./src/processEnglish.js";
+
 const allLangsZip = new AdmZip();
 const allLangsWithSeqZip = new AdmZip();
 
@@ -123,9 +125,15 @@ function createAllLangsZip() {
   // Then, prepare the working directories
   prepareWorkingDirectory();
 
+  // unzip all the language pak files
   for (const pak of languagePackageFiles) {
-    // unpack the pak files
     unzipPak(pak);
+    console.log(`Unzip language pak: ${pak}, DONE`);
+  }
+
+  // Process each language pak except the first one (English)
+  const langs = languagePackageFiles.slice(1);
+  for (const pak of langs) {
     // Run the script for each language pak
     processPakByLanguage(pak);
     //
@@ -135,4 +143,7 @@ function createAllLangsZip() {
   // Create the bundle zip
   createAllLangsZip();
   console.log("Create bundle zip, DONE");
+
+  processEnglish();
+  console.log("Create English bundle zip, DONE");
 })();
