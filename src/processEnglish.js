@@ -2,20 +2,13 @@ import fs from "fs";
 import path from "path";
 import AdmZip from "adm-zip";
 
-import { unzipPak, zipPakDataToBuffer } from "./zip.js";
+import { zipPakDataToBuffer } from "./zip.js";
+
+import { regexp, languagePackageFiles } from "./constants.js";
 
 import {
-  regexp,
-  languagePackageFiles,
-  tempStoragePath,
-  uiDialogFilename,
-} from "./constants.js";
-
-import {
-  getSuffixByPakName,
-  prepareWorkingDirectory,
-  checkLocalizationAssets,
   isNearlyContained,
+  getSuffixByPakName,
   createPakInfoByFileName,
 } from "./utils.js";
 
@@ -81,10 +74,7 @@ function createZipBufferByLanguage(pakFileName) {
   updatedXmlWithSeq += "</Table>";
 
   // 1. packing the `English_xml.pak` with updated XML of pak file in memory
-  const pakFileWithSeqBuffer = zipPakDataToBuffer(
-    EnglishPakInfo.unpackedFolderPath,
-    updatedXmlWithSeq
-  );
+  const pakFileWithSeqBuffer = zipPakDataToBuffer(updatedXmlWithSeq);
 
   // 2. generate zip of the language
   const pakFilepath = path.join("Localization", EnglishPakInfo.name);

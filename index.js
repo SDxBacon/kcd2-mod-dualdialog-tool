@@ -71,11 +71,8 @@ function processPakByLanguage(pakFilename) {
   updatedXmlWithSeq += "</Table>";
 
   // 1. packing the data with updated XML of pak file in memory
-  const pakFileBuffer = zipPakDataToBuffer(pakFolderInTemp, updatedXml);
-  const pakFileWithSeqBuffer = zipPakDataToBuffer(
-    pakFolderInTemp,
-    updatedXmlWithSeq
-  );
+  const pakFileBuffer = zipPakDataToBuffer(updatedXml);
+  const pakFileWithSeqBuffer = zipPakDataToBuffer(updatedXmlWithSeq);
 
   // 2. generate zip of the language
   const pakFilepath = path.join("Localization", pakFilename);
