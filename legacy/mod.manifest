@@ -5,11 +5,11 @@
         <modid>dualdialog</modid>
         <description>Displays dialogues in both the selected language and English.</description>
         <author>SDxBacon</author>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
         <created_on>17 Feb 2025</created_on>
         <modifies_level>false</modifies_level>
     </info>
     <supports>
-        <kcd_version>1.1.1</kcd_version>
+        <kcd_version>1.1.2</kcd_version>
     </supports>
 </kcd_mod>
