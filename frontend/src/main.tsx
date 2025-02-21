@@ -1,5 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { HeroUIProvider } from "@heroui/react";
 import "./style.css";
 import App from "./App";
 
@@ -9,6 +10,8 @@ const root = createRoot(container!);
 
 root.render(
   <React.StrictMode>
-    <App />
+    <HeroUIProvider>
+      <App />
+    </HeroUIProvider>
   </React.StrictMode>
 );

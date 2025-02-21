@@ -1,17 +1,17 @@
+// tailwind.config.js
+const { heroui } = require("@heroui/react");
+
+/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/**/*.{html,jsx,tsx}",
-    // you can either add all styles
-    "./node_modules/@rewind-ui/core/dist/theme/styles/*.js",
-    // OR you can add only the styles you need
-    "./node_modules/@rewind-ui/core/dist/theme/styles/Button.styles.js",
-    "./node_modules/@rewind-ui/core/dist/theme/styles/Text.styles.js",
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    // make sure it's pointing to the ROOT node_module
+    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
-  plugins: [
-    require("@tailwindcss/typography"),
-    require("tailwind-scrollbar")({ nocompatible: true }),
-    require("@tailwindcss/forms")({
-      strategy: "class", // only generate classes
-    }),
-  ],
+  theme: {
+    extend: {},
+  },
+  darkMode: "class",
+  plugins: [heroui()],
 };
