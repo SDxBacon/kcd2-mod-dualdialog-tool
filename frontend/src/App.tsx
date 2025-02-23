@@ -1,41 +1,39 @@
 import { useState } from "react";
-import { Select, SelectItem } from "@heroui/react";
+import { Button, Card, CardBody } from "@heroui/react";
+import OutputButton from "@/components/OutputButton";
 import LanguageSelect from "@/components/LanguageSelect";
+import KingdomComeFolderPicker from "@/components/KingdomComeFolderPicker";
 import "./App.css";
-import { Greet } from "../wailsjs/go/main/App";
-
-export const animals = [
-  { key: "cat", label: "Cat" },
-  { key: "dog", label: "Dog" },
-  { key: "elephant", label: "Elephant" },
-  { key: "lion", label: "Lion" },
-  { key: "tiger", label: "Tiger" },
-  { key: "giraffe", label: "Giraffe" },
-  { key: "dolphin", label: "Dolphin" },
-  { key: "penguin", label: "Penguin" },
-  { key: "zebra", label: "Zebra" },
-  { key: "shark", label: "Shark" },
-  { key: "whale", label: "Whale" },
-  { key: "otter", label: "Otter" },
-  { key: "crocodile", label: "Crocodile" },
-];
 
 function App() {
-  return (
-    <div id="App" className="bg-green-50">
-      <div className="flex w-full flex-wrap md:flex-nowrap gap-4">
-        <LanguageSelect label="Select an animal" />
+  const [folder, setFolder] = useState("");
+  const [isFolderError, setIsFolderError] = useState(false);
 
-        <Select
-          className="max-w-xs"
-          label="Favorite Animal"
-          placeholder="Select an animal"
-        >
-          {animals.map((animal) => (
-            <SelectItem key={animal.key}>{animal.label}</SelectItem>
-          ))}
-        </Select>
+  return (
+    <div id="App" className="bg-gray-800 h-screen px-[100px] py-11">
+      <KingdomComeFolderPicker
+        isError
+        onSelect={(path) => {
+          setFolder(path);
+          setIsFolderError(false);
+        }}
+        onSelectError={() => setIsFolderError(true)}
+      />
+
+      <div className="flex w-full flex-wrap md:flex-nowrap gap-4 items-center">
+        <LanguageSelect label="您的遊戲字幕語言" />
+        <LanguageSelect label="您的遊戲字幕語言" />
       </div>
+
+      <div className="w-full flex justify-center items-center mt-6">
+        <Card>
+          <CardBody>
+            <p>Make beautiful websites regardless of your design experience.</p>
+          </CardBody>
+        </Card>
+      </div>
+
+      <OutputButton>輸出</OutputButton>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Select, SelectItem } from "@heroui/react";
+import { Select, SelectItem, SelectProps } from "@heroui/react";
 
 import { Language } from "@/constants/languages";
 
@@ -22,11 +22,17 @@ const options = [
 
 interface LanguageSelectProps {
   label?: string;
+  value?: Language;
+  disabledKeys?: SelectProps["disabledKeys"];
 }
 
 function LanguageSelect({ label = "" }: LanguageSelectProps) {
   return (
-    <Select className="max-w-xs" label={label}>
+    <Select
+      className="max-w-xs"
+      label={label}
+      disabledKeys={[Language.English]}
+    >
       {options.map((language) => (
         <SelectItem key={language.key}>{language.label}</SelectItem>
       ))}
