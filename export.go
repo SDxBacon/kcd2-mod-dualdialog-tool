@@ -3,6 +3,7 @@ package main
 import (
 	"archive/zip"
 	"bytes"
+	"compress/flate"
 	"fmt"
 	"io"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 )
 
 var languagePackageFiles = []string{
@@ -66,16 +68,70 @@ func isNearlyContained(str1, str2 string) bool {
 
 func createSubLangMap(data []byte) (map[string]string, error) {
 	langMap := make(map[string]string)
-	regexPattern := regexp.MustCompile(`<Row><Cell>(.*?)</Cell><Cell>.*?</Cell><Cell>(.*?)</Cell></Row>`)
-	matches := regexPattern.FindAllSubmatch(data, -1)
 
-	for _, match := range matches {
-		if len(match) >= 3 {
-			key := string(match[1])
-			value := string(match[2])
-			langMap[key] = value
-		}
+	// 確定使用的 CPU 核心數，但限制最大數量避免過度並行
+	numWorkers := runtime.NumCPU()
+	if numWorkers > 8 {
+		numWorkers = 8 // 限制最大核心數，避免過度競爭
 	}
+
+	// 分割數據為多行
+	lines := bytes.Split(data, []byte("\n"))
+
+	// 創建互斥鎖保護 map 寫入
+	var mutex sync.Mutex
+
+	// 創建 WaitGroup 來同步 goroutines
+	var wg sync.WaitGroup
+
+	// 計算每個 worker 處理的行數
+	batchSize := (len(lines) + numWorkers - 1) / numWorkers
+
+	// 編譯正則表達式 - 每個 goroutine 共用同一個編譯好的正則表達式
+	regexPattern := regexp.MustCompile(`<Row><Cell>(.*?)</Cell><Cell>.*?</Cell><Cell>(.*?)</Cell></Row>`)
+
+	// 啟動多個 worker
+	for w := 0; w < numWorkers; w++ {
+		wg.Add(1)
+
+		start := w * batchSize
+		end := start + batchSize
+		if end > len(lines) {
+			end = len(lines)
+		}
+
+		go func(start, end int) {
+			defer wg.Done()
+
+			// 本地 map 用於收集該 goroutine 的結果
+			localMap := make(map[string]string)
+
+			for i := start; i < end; i++ {
+				line := lines[i]
+
+				// 快速檢查以跳過不相關的行
+				if !bytes.Contains(line, []byte("<Row>")) {
+					continue
+				}
+
+				// 應用正則表達式
+				matches := regexPattern.FindSubmatch(line)
+				if len(matches) >= 3 {
+					localMap[string(matches[1])] = string(matches[2])
+				}
+			}
+
+			// 批量更新全局 map，減少鎖競爭
+			mutex.Lock()
+			for k, v := range localMap {
+				langMap[k] = v
+			}
+			mutex.Unlock()
+		}(start, end)
+	}
+
+	// 等待所有 worker 完成
+	wg.Wait()
 
 	return langMap, nil
 }
@@ -144,7 +200,7 @@ func createZipBufferByLanguage(mainData []byte, subData []byte) ([]byte, error) 
 					var processedLine string
 
 					// 應用條件
-					if !exists || isNearlyContained(col2, textInSubData) || col2 == textInSubData {
+					if !exists || isNearlyContained(col3, textInSubData) || col3 == textInSubData {
 						processedLine = fullMatch + "\n"
 					} else {
 						processedLine = fmt.Sprintf("<Row><Cell>%s</Cell><Cell>%s</Cell><Cell>%s\\n%s</Cell></Row>\n",
@@ -194,7 +250,19 @@ func createZipBufferByLanguage(mainData []byte, subData []byte) ([]byte, error) 
 	var buf bytes.Buffer
 	zipWriter := zip.NewWriter(&buf)
 
-	writer, err := zipWriter.Create("dual_dialog.xml")
+	// 設置使用 DOS 時間格式 (低精度)
+	zipWriter.RegisterCompressor(zip.Deflate, func(out io.Writer) (io.WriteCloser, error) {
+		return flate.NewWriter(out, flate.DefaultCompression)
+	})
+
+	// 使用 zip.FileInfoHeader 和手動設置 Modified 時間
+	fileInfo := zip.FileHeader{
+		Name:   "text_dualdialog.xml",
+		Method: zip.Deflate,
+	}
+	// 設置為 DOS 時間格式 (只有日期和秒級精度)
+	fileInfo.Modified = time.Now().Truncate(time.Second)
+	writer, err := zipWriter.CreateHeader(&fileInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -225,12 +293,12 @@ func ProcessAndExportModZip(outputFolder string) error {
 	defer outputZipWriter.Close()
 
 	// Read data from main language pak
-	mainLanguageData, err := extractFileFromZip(filepath.Join(GameFolderPath, "Localization/English_xml.pak"))
+	subLanguageData, err := extractFileFromZip(filepath.Join(GameFolderPath, "Localization/English_xml.pak"))
 	if err != nil {
 		return err
 	}
 	// Read data from sub language pak
-	subLanguageData, err := extractFileFromZip(filepath.Join(GameFolderPath, "Localization/Chineset_xml.pak"))
+	mainLanguageData, err := extractFileFromZip(filepath.Join(GameFolderPath, "Localization/Chineset_xml.pak"))
 	if err != nil {
 		return err
 	}
@@ -240,8 +308,8 @@ func ProcessAndExportModZip(outputFolder string) error {
 		return err
 	}
 
-	// Add Dual Dialog.pak
-	writer, err := outputZipWriter.Create("Localization/Dual Dialog.pak")
+	// Add {MAIN LANGUAGE}_xml.pak ㄔㄟˉ
+	writer, err := outputZipWriter.Create("Localization/Chineset_xml.pak")
 	if err != nil {
 		return err
 	}
