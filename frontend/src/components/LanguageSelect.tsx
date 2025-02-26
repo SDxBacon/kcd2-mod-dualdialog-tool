@@ -1,3 +1,4 @@
+import React from "react";
 import { Select, SelectItem, SelectProps } from "@heroui/react";
 
 import { Language, Languages } from "@/constants/languages";
@@ -24,14 +25,30 @@ interface LanguageSelectProps {
   label?: string;
   value?: Language;
   disabledKeys?: SelectProps["disabledKeys"];
+  onSelect?: (language: Language) => void;
 }
 
-function LanguageSelect({ label = "" }: LanguageSelectProps) {
+function LanguageSelect({
+  label = "",
+  value,
+  disabledKeys,
+  onSelect,
+}: LanguageSelectProps) {
+  const handleChanged: React.ChangeEventHandler<HTMLSelectElement> = (evt) => {
+    const key = evt.target.value as Language;
+    const language = options.find((language) => language.key === key);
+    if (language && onSelect) {
+      onSelect(language.key);
+    }
+  };
+
   return (
     <Select
       className="max-w-xs"
       label={label}
-      disabledKeys={[Languages.English]}
+      value={value}
+      disabledKeys={disabledKeys}
+      onChange={handleChanged}
     >
       {options.map((language) => (
         <SelectItem key={language.key}>{language.label}</SelectItem>

@@ -15,17 +15,111 @@ import (
 	"time"
 )
 
-var languagePackageFiles = []string{
-	"English_xml.pak",
-	"Chinese_xml.pak",
-	"Japanese_xml.pak",
-	// Add other language paks as needed
+// Languages represents the supported game languages
+type Languages int
+
+// Language enum values
+const (
+	English Languages = iota
+	ChineseSimplified
+	ChineseTraditional
+	Japanese
+	Korean
+	Spanish
+	French
+	German
+	Italian
+	Polish
+	Czech
+	Portuguese
+	Turkish
+	Ukrainian
+	Russian
+)
+
+// String returns the string representation of the language
+func (l Languages) String() string {
+	return [...]string{
+		"English",
+		"Chinese - Simplified",
+		"Chinese - Traditional",
+		"Japanese",
+		"Korean",
+		"Spanish",
+		"French",
+		"German",
+		"Italian",
+		"Polish",
+		"Czech",
+		"Portuguese",
+		"Turkish",
+		"Ukrainian",
+		"Russian",
+	}[l]
 }
 
-type PakInfo struct {
-	Name               string
-	UnpackedFolderPath string
-	XMLFilePath        string
+// GetLanguagePakName returns the PAK file name for the language
+func (l Languages) GetLanguagePakName() string {
+	switch l {
+	case English:
+		return "English_xml.pak"
+	case ChineseSimplified:
+		return "Chineses_xml.pak"
+	case ChineseTraditional:
+		return "Chineset_xml.pak"
+	case Japanese:
+		return "Japanese_xml.pak"
+	case Korean:
+		return "Korean_xml.pak"
+	case Spanish:
+		return "Spanish_xml.pak"
+	case French:
+		return "French_xml.pak"
+	case German:
+		return "German_xml.pak"
+	case Italian:
+		return "Italian_xml.pak"
+	case Polish:
+		return "Polish_xml.pak"
+	case Czech:
+		return "Czech_xml.pak"
+	case Portuguese:
+		return "Portuguese_xml.pak"
+	case Turkish:
+		return "Turkish_xml.pak"
+	case Ukrainian:
+		return "Ukrainian_xml.pak"
+	case Russian:
+		return "Russian_xml.pak"
+	default:
+		return "English_xml.pak"
+	}
+}
+
+// LanguageFromString returns the Languages enum from a string representation
+func LanguageFromString(s string) (Languages, bool) {
+	for i, name := range [...]string{
+		"English",
+		"Chinese - Simplified",
+		"Chinese - Traditional",
+		"Japanese",
+		"Korean",
+		"Spanish",
+		"French",
+		"German",
+		"Italian",
+		"Polish",
+		"Czech",
+		"Portuguese",
+		"Turkish",
+		"Ukrainian",
+		"Russian",
+	} {
+		if name == s {
+			return Languages(i), true
+		}
+	}
+	return English, false
 }
 
 // extract `text_ui_dialog.xml` from the zip file
@@ -280,7 +374,7 @@ func createZipBufferByLanguage(mainData []byte, subData []byte) ([]byte, error) 
 	return buf.Bytes(), nil
 }
 
-func ProcessAndExportModZip(outputFolder string) error {
+func ProcessAndExportModZip(mainLanguage string, subLanguage string, outputFolder string) error {
 	// Create output zip
 	outputZipPath := filepath.Join(outputFolder, "Dual Dialog.zip") // FXIME:
 	outputZipFile, err := os.Create(outputZipPath)
@@ -292,13 +386,24 @@ func ProcessAndExportModZip(outputFolder string) error {
 	outputZipWriter := zip.NewWriter(outputZipFile)
 	defer outputZipWriter.Close()
 
-	// Read data from main language pak
-	subLanguageData, err := extractFileFromZip(filepath.Join(GameFolderPath, "Localization/English_xml.pak"))
+	// Read data from main and sub language pak
+	mainLang, _ := LanguageFromString(mainLanguage)
+	mainLanguagePakFileName := mainLang.GetLanguagePakName()
+
+	mainLanguageFilePath := filepath.Join(GameFolderPath, fmt.Sprintf("Localization/%s", mainLanguagePakFileName))
+	mainLanguageData, err := extractFileFromZip(mainLanguageFilePath)
+	fmt.Println("Main Language:", mainLanguageFilePath)
 	if err != nil {
 		return err
 	}
+
 	// Read data from sub language pak
-	mainLanguageData, err := extractFileFromZip(filepath.Join(GameFolderPath, "Localization/Chineset_xml.pak"))
+	subLang, _ := LanguageFromString(subLanguage)
+	subLanguagePakFileName := subLang.GetLanguagePakName()
+	subLanguageFilePath := filepath.Join(GameFolderPath, fmt.Sprintf("Localization/%s", subLanguagePakFileName))
+	subLanguageData, err := extractFileFromZip(subLanguageFilePath)
+
+	fmt.Println("sUB Language:", subLanguageFilePath)
 	if err != nil {
 		return err
 	}
@@ -308,8 +413,8 @@ func ProcessAndExportModZip(outputFolder string) error {
 		return err
 	}
 
-	// Add {MAIN LANGUAGE}_xml.pak ㄔㄟˉ
-	writer, err := outputZipWriter.Create("Localization/Chineset_xml.pak")
+	// Add {MAIN LANGUAGE}_xml.pak to the output zip
+	writer, err := outputZipWriter.Create(fmt.Sprintf("Localization/%s", mainLanguagePakFileName))
 	if err != nil {
 		return err
 	}

@@ -1,0 +1,8 @@
+{
+  "LABEL_GAME_FOLDER": "遊戲資料夾",
+  "BUTTON_CHOOSE_GAME_FOLDER": "選擇資料夾",
+  "LABEL_GAME_LANGUAGE": "遊戲語言",
+  "LABEL_DOUBLED_LANGUAGE": "搭配的語言",
+  "BUTTON_EXPORT": "輸出",
+  "NOTE": "目前遊戲所提供的語系包（拉丁、繁體中文、簡體中文、日文、韓文），對於其他語系的字型只打包了最簡單的數字、符號。如果您知道擴充字型檔，歡迎與我聯繫。"
+}

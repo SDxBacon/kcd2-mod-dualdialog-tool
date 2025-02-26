@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { Button, Input } from "@heroui/react";
 import { SelectGameFolder } from "../../wailsjs/go/main/App";
+import { useTranslation } from "react-i18next";
 
 interface KingdomComeFolderPickerProps {
   value?: string;
@@ -15,6 +15,8 @@ function KingdomComeFolderPicker({
   onSelect,
   onSelectError,
 }: KingdomComeFolderPickerProps) {
+  const { t } = useTranslation();
+
   const handleButtonPressed = async () => {
     try {
       const folder = await SelectGameFolder();
@@ -26,7 +28,7 @@ function KingdomComeFolderPicker({
 
   return (
     <div className="flex flex-row gap-3 h-[64px]">
-      <p className="m-[6px]">Game Folder</p>
+      <p className="m-[6px]">{t("LABEL_GAME_FOLDER")}</p>
       <div className="w-[450px]">
         <Input
           className="text-ellipsis"

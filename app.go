@@ -54,7 +54,7 @@ func (a *App) SelectGameFolder() (string, error) {
 	return folderPath, nil
 }
 
-func (a *App) CreateModZip() {
+func (a *App) CreateModZip(mainLanguage string, subLanguage string) {
 	// Ask user to select output folder
 	options := runtime.OpenDialogOptions{
 		Title:                "請選擇輸出資料夾",
@@ -66,7 +66,7 @@ func (a *App) CreateModZip() {
 	}
 
 	// Process and export the mod zip
-	ProcessAndExportModZip(outputFolder)
+	ProcessAndExportModZip(mainLanguage, subLanguage, outputFolder)
 }
 
 // IsValidKCM2Folder checks if the given path is a valid KCM2 folder
