@@ -1,24 +1,27 @@
 import { useState } from "react";
 import { Button, Input } from "@heroui/react";
-import { SelectFolder } from "../../wailsjs/go/main/App";
+import { SelectGameFolder } from "../../wailsjs/go/main/App";
 
 interface KingdomComeFolderPickerProps {
   value?: string;
   isError?: boolean;
   onSelect?: (folder: string) => void;
-  onSelectError?: () => void;
+  onSelectError?: (e: any) => void;
 }
 
 function KingdomComeFolderPicker({
   value = "",
   isError = false,
+  onSelect,
+  onSelectError,
 }: KingdomComeFolderPickerProps) {
-  const [folder, setFolder] = useState("");
-
-  const handleButtonPressed = () => {
-    SelectFolder().then((folder: string) => {
-      setFolder(folder);
-    });
+  const handleButtonPressed = async () => {
+    try {
+      const folder = await SelectGameFolder();
+      onSelect?.(folder);
+    } catch (e) {
+      onSelectError?.(e);
+    }
   };
 
   return (
@@ -33,7 +36,7 @@ function KingdomComeFolderPicker({
           isReadOnly
           onClick={handleButtonPressed}
           isInvalid={isError}
-          errorMessage="31232"
+          errorMessage="請正確選擇 Kingdom Come: Deliverance II 遊戲資料夾"
         />
       </div>
 

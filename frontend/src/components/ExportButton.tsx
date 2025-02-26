@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { Button } from "@heroui/react";
 import { motion, useAnimation } from "framer-motion";
+import { CreateModZip } from "../../wailsjs/go/main/App";
 
-interface OutputButtonProps {
+interface ExportButtonProps {
   children?: React.ReactNode;
 }
 
-function OutputButton({ children }: OutputButtonProps) {
+function ExportButton({ children }: ExportButtonProps) {
   const controls = useAnimation();
 
   // 自訂振動序列，使用 rotate
@@ -21,7 +22,7 @@ function OutputButton({ children }: OutputButtonProps) {
         },
       });
       // 振動之間的間隔
-      await new Promise((resolve) => setTimeout(resolve, 800)); // 0.8 秒停頓
+      await new Promise((resolve) => setTimeout(resolve, 1500)); // 0.8 秒停頓
     }
   };
 
@@ -31,11 +32,17 @@ function OutputButton({ children }: OutputButtonProps) {
   }, [controls]);
 
   return (
-    <motion.div animate={controls}>
+    <motion.div
+      animate={controls}
+      className="inline-block origin-center self-center"
+    >
       <Button
         className="bg-gradient-to-tr from-pink-500 to-yellow-500 text-white shadow-lg"
         radius="full"
         size="lg"
+        onPress={() => {
+          CreateModZip();
+        }}
       >
         {children}
       </Button>
@@ -43,4 +50,4 @@ function OutputButton({ children }: OutputButtonProps) {
   );
 }
 
-export default OutputButton;
+export default ExportButton;
