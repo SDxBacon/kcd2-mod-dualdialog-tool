@@ -16,7 +16,7 @@ type App struct {
 	ctx context.Context
 }
 
-var GameFolder string
+var GameFolderPath string
 
 // NewApp creates a new App application struct
 func NewApp() *App {
@@ -37,19 +37,19 @@ func (a *App) SelectGameFolder() (string, error) {
 	}
 	folderPath, err := runtime.OpenDirectoryDialog(a.ctx, options)
 	if err != nil {
-		GameFolder = ""
+		GameFolderPath = ""
 		return "", err
 	}
 
 	// check if the folder is a valid KCM2 folder
 	err = validateKCM2Folder(folderPath)
 	if err != nil {
-		GameFolder = ""
+		GameFolderPath = ""
 		return "", err
 	}
 
 	// Save the folder path
-	GameFolder = folderPath
+	GameFolderPath = folderPath
 	// Return the folder path
 	return folderPath, nil
 }

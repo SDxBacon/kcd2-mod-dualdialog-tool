@@ -8,7 +8,9 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
+	"sync"
 )
 
 var languagePackageFiles = []string{
@@ -57,10 +59,6 @@ func extractFileFromZip(zipFilePath string) ([]byte, error) {
 	return nil, fmt.Errorf("text_ui_dialog.xml not found in: %s", zipFilePath)
 }
 
-func getSuffixByPakName(pakFileName string) string {
-	return strings.Split(pakFileName, "_")[0]
-}
-
 func isNearlyContained(str1, str2 string) bool {
 	// Simple implementation - can be refined based on specific requirements
 	return strings.Contains(str1, str2) || strings.Contains(str2, str1)
@@ -82,64 +80,117 @@ func createSubLangMap(data []byte) (map[string]string, error) {
 	return langMap, nil
 }
 
-// func zipPakDataToBuffer(xmlData string) ([]byte, error) {
-// 	var buf bytes.Buffer
-// 	zipWriter := zip.NewWriter(&buf)
-
-// 	// Add XML file to zip
-// 	writer, err := zipWriter.Create("text_ui_dialog.xml")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to create zip entry: %w", err)
-// 	}
-
-// 	_, err = writer.Write([]byte(xmlData))
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to write to zip: %w", err)
-// 	}
-
-// 	// Close the zip writer
-// 	if err := zipWriter.Close(); err != nil {
-// 		return nil, fmt.Errorf("failed to close zip writer: %w", err)
-// 	}
-
-// 	return buf.Bytes(), nil
-// }
-
 func createZipBufferByLanguage(mainData []byte, subData []byte) ([]byte, error) {
-	// Read the text_ui_dialog.xml file
+	// 讀取 text_ui_dialog.xml 檔案並創建對照表
 	mapSubLang, err := createSubLangMap(subData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create sublang map: %w", err)
 	}
 
-	// Main regex to process the English XML
+	// 主正則表達式
 	regexPattern := regexp.MustCompile(`<Row><Cell>(.*?)</Cell><Cell>(.*?)</Cell><Cell>(.*?)</Cell></Row>`)
-	newMainData := "<Table>\n"
 
-	// Process each match
-	matches := regexPattern.FindAllStringSubmatch(string(mainData), -1)
-	for _, match := range matches {
-		fullMatch := match[0]
-		col1 := match[1]
-		col2 := match[2]
-		col3 := match[3]
+	// 分割資料為多行
+	lines := bytes.Split(mainData, []byte("\n"))
 
-		textInSubData, exists := mapSubLang[col1]
+	// 計算要使用的 CPU 核心數
+	numWorkers := runtime.NumCPU()
 
-		// Apply conditions
-		if !exists || isNearlyContained(col2, textInSubData) || col2 == textInSubData {
-			newMainData += fullMatch + "\n"
-			continue
+	// 創建通道用於收集結果
+	type Result struct {
+		index int
+		line  string
+	}
+	resultChan := make(chan Result, len(lines))
+
+	// 創建一個 WaitGroup 來等待所有 goroutines 完成
+	var wg sync.WaitGroup
+
+	// 將行分批處理
+	batchSize := (len(lines) + numWorkers - 1) / numWorkers
+
+	for w := 0; w < numWorkers; w++ {
+		wg.Add(1)
+
+		// 計算這個 worker 的起始和結束位置
+		start := w * batchSize
+		end := start + batchSize
+		if end > len(lines) {
+			end = len(lines)
 		}
 
-		newMainData += fmt.Sprintf("<Row><Cell>%s</Cell><Cell>%s</Cell><Cell>%s\\n%s</Cell></Row>\n",
-			col1, col2, col3, textInSubData)
+		// 啟動 worker goroutine
+		go func(start, end int) {
+			defer wg.Done()
+
+			for i := start; i < end; i++ {
+				line := string(lines[i])
+
+				// 忽略不含 <Row> 的行
+				if !strings.Contains(line, "<Row>") {
+					continue
+				}
+
+				// 對每行應用正則表達式
+				matches := regexPattern.FindStringSubmatch(line)
+				if len(matches) >= 4 {
+					fullMatch := matches[0]
+					col1 := matches[1]
+					col2 := matches[2]
+					col3 := matches[3]
+
+					textInSubData, exists := mapSubLang[col1]
+
+					var processedLine string
+
+					// 應用條件
+					if !exists || isNearlyContained(col2, textInSubData) || col2 == textInSubData {
+						processedLine = fullMatch + "\n"
+					} else {
+						processedLine = fmt.Sprintf("<Row><Cell>%s</Cell><Cell>%s</Cell><Cell>%s\\n%s</Cell></Row>\n",
+							col1, col2, col3, textInSubData)
+					}
+
+					// 發送結果到通道
+					resultChan <- Result{i, processedLine}
+				}
+			}
+		}(start, end)
 	}
 
-	// Add closing tag
-	newMainData += "</Table>"
+	// 開始一個 goroutine 來等待所有工作完成後關閉結果通道
+	go func() {
+		wg.Wait()
+		close(resultChan)
+	}()
 
-	// Create pak buffer
+	// 收集結果
+	results := make([]string, len(lines)) // 預分配足夠空間
+	var counter int
+
+	for result := range resultChan {
+		results[result.index] = result.line
+		counter++
+
+		if counter%1000 == 0 {
+			fmt.Println("已處理", counter, "項")
+		}
+	}
+
+	// 組合結果
+	var newMainData strings.Builder
+	newMainData.Grow(len(mainData) * 2) // 預分配足夠空間
+	newMainData.WriteString("<Table>\n")
+
+	for _, line := range results {
+		if line != "" {
+			newMainData.WriteString(line)
+		}
+	}
+
+	newMainData.WriteString("</Table>")
+
+	// 創建 zip 緩衝區
 	var buf bytes.Buffer
 	zipWriter := zip.NewWriter(&buf)
 
@@ -148,7 +199,7 @@ func createZipBufferByLanguage(mainData []byte, subData []byte) ([]byte, error) 
 		return nil, err
 	}
 
-	_, err = writer.Write([]byte(newMainData))
+	_, err = io.WriteString(writer, newMainData.String())
 	if err != nil {
 		return nil, err
 	}
@@ -174,17 +225,30 @@ func ProcessAndExportModZip(outputFolder string) error {
 	defer outputZipWriter.Close()
 
 	// Read data from main language pak
-	mainLanguageData, err := extractFileFromZip("English_xml.pak")
+	mainLanguageData, err := extractFileFromZip(filepath.Join(GameFolderPath, "Localization/English_xml.pak"))
+	if err != nil {
+		return err
+	}
 	// Read data from sub language pak
-	subLanguageData, err := extractFileFromZip("Chineset_xml.pak")
+	subLanguageData, err := extractFileFromZip(filepath.Join(GameFolderPath, "Localization/Chineset_xml.pak"))
+	if err != nil {
+		return err
+	}
 
 	newMainLanguageData, err := createZipBufferByLanguage(mainLanguageData, subLanguageData)
+	if err != nil {
+		return err
+	}
 
 	// Add Dual Dialog.pak
 	writer, err := outputZipWriter.Create("Localization/Dual Dialog.pak")
+	if err != nil {
+		return err
+	}
+
 	_, err = writer.Write(newMainLanguageData)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	// Add mod.manifest to the output zip

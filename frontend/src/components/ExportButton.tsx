@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Button } from "@heroui/react";
+import { addToast } from "@heroui/react";
 import { motion, useAnimation } from "framer-motion";
 import { CreateModZip } from "../../wailsjs/go/main/App";
 
@@ -34,14 +35,25 @@ function ExportButton({ children }: ExportButtonProps) {
   return (
     <motion.div
       animate={controls}
-      className="inline-block origin-center self-center"
+      className="inline-block origin-center self-center w-[200px]"
     >
       <Button
         className="bg-gradient-to-tr from-pink-500 to-yellow-500 text-white shadow-lg"
         radius="full"
         size="lg"
+        fullWidth
         onPress={() => {
-          CreateModZip();
+          CreateModZip()
+            .then(() => {
+              console.log("DONE");
+              addToast({
+                title: "Create Mod ZIP Done",
+                color: "success",
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+            });
         }}
       >
         {children}
