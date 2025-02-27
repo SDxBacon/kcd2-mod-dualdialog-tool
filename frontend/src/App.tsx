@@ -23,15 +23,15 @@ function App() {
   const [subLanguage, setSubLanguage] = useState<Language | null>(null);
 
   // disabled main language keys
-  const disabledSubLanguageKeys = isNil(mainLanguage)
-    ? []
-    : [mainLanguage, ...getAsianLanguages()];
+  const disabledSubLanguageKeys = isNil(mainLanguage) ? [] : [mainLanguage];
+
+  // check if export button is disabled
+  const isExportButtonDisabled =
+    isNil(mainLanguage) || isNil(subLanguage) || !folder;
 
   const startExport = useExport();
 
   const handleExportButtonPress = useCallback(() => {
-    console.log("🚀 ~ handleExportButtonPress ~ mainLanguage:", mainLanguage);
-    console.log("🚀 ~ handleExportButtonPress ~ subLanguage:", subLanguage);
     if (!mainLanguage || !subLanguage) {
       // fixme:
       startExport(Languages.ChineseTraditional, Languages.ChineseSimplified);
@@ -51,7 +51,7 @@ function App() {
   }, []);
 
   return (
-    <div id="App" className="bg-gray-800 h-screen px-[100px] py-11">
+    <div id="App" className="bg-gray-800 h-screen px-[100px] pb-11 pt-4">
       {/* Navbar */}
       <Navbar />
       <KingdomComeFolderPicker
@@ -74,6 +74,7 @@ function App() {
           label={t("LABEL_DOUBLED_LANGUAGE")}
           onSelect={handleSubLanguageSelect}
           disabledKeys={disabledSubLanguageKeys}
+          hideAsianLanguages
         />
       </div>
 
@@ -85,7 +86,12 @@ function App() {
         </Card>
       </div>
 
-      <ExportButton onPress={handleExportButtonPress}>輸出</ExportButton>
+      <ExportButton
+        onPress={handleExportButtonPress}
+        isDisabled={isExportButtonDisabled}
+      >
+        {t("BUTTON_EXPORT")}
+      </ExportButton>
     </div>
   );
 }

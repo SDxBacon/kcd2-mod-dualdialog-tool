@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Select, SelectItem, SelectProps } from "@heroui/react";
 
 import { Language, Languages } from "@/constants/languages";
+import { isLatin } from "@/utils";
 
 const options = [
   { key: Languages.English, label: "English" },
@@ -26,6 +27,7 @@ interface LanguageSelectProps {
   value?: Language;
   disabledKeys?: SelectProps["disabledKeys"];
   onSelect?: (language: Language) => void;
+  hideAsianLanguages?: boolean;
 }
 
 function LanguageSelect({
@@ -33,10 +35,18 @@ function LanguageSelect({
   value,
   disabledKeys,
   onSelect,
+  hideAsianLanguages,
 }: LanguageSelectProps) {
+  const usedOptions = useMemo(() => {
+    if (hideAsianLanguages) {
+      return options.filter((language) => isLatin(language.key));
+    }
+    return options;
+  }, [hideAsianLanguages]);
+
   const handleChanged: React.ChangeEventHandler<HTMLSelectElement> = (evt) => {
     const key = evt.target.value as Language;
-    const language = options.find((language) => language.key === key);
+    const language = usedOptions.find((language) => language.key === key);
     if (language && onSelect) {
       onSelect(language.key);
     }
@@ -44,13 +54,13 @@ function LanguageSelect({
 
   return (
     <Select
-      className="max-w-xs"
+      // className="max-w-xs"
       label={label}
       value={value}
       disabledKeys={disabledKeys}
       onChange={handleChanged}
     >
-      {options.map((language) => (
+      {usedOptions.map((language) => (
         <SelectItem key={language.key}>{language.label}</SelectItem>
       ))}
     </Select>

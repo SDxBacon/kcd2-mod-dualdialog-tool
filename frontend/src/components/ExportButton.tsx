@@ -1,11 +1,12 @@
 import { Button } from "@heroui/react";
 
 interface ExportButtonProps {
+  isDisabled?: boolean;
   onPress?: () => void;
   children?: React.ReactNode;
 }
 
-function ExportButton({ onPress, children }: ExportButtonProps) {
+function ExportButton({ isDisabled, onPress, children }: ExportButtonProps) {
   return (
     <div className="w-[200px] justify-self-center mt-4">
       <Button
@@ -13,6 +14,7 @@ function ExportButton({ onPress, children }: ExportButtonProps) {
         radius="full"
         size="lg"
         fullWidth
+        isDisabled={isDisabled}
         onPress={onPress}
       >
         {children}

@@ -18,11 +18,12 @@ func main() {
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "KCD2-mod-dualdialog-tool",
-		Width:  917,
-		Height: 512,
+		Width:  904,
+		Height: 488,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
+		DisableResize:    true,
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 		OnStartup:        app.startup,
 		Bind: []interface{}{

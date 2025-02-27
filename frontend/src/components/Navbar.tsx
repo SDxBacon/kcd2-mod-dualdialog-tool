@@ -20,15 +20,15 @@ function Navbar() {
   if (i18n.language !== usedLanguage) i18n.changeLanguage(usedLanguage);
 
   return (
-    <div className="w-full flex items-center justify-end gap-2">
+    <div className="w-full flex items-center justify-end gap-2 mb-8 translate-x-[77px]">
+      <p className="text-xs">{t("LABEL_I18N_LANGUAGE")}</p>
       {/* Language */}
       <Select
-        className="max-w-xs"
-        label={t("LABEL_I18N_LANGUAGE")}
+        className="min-w-[120px] w-30"
         size="sm"
         value={usedLanguage}
         variant="bordered"
-        labelPlacement="outside-left"
+        fullWidth={false}
         onChange={(e) => setUsedLanguage(e.target.value)}
       >
         {i18nLanguages.map((option) => (

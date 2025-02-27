@@ -2,6 +2,7 @@
   "LABEL_I18N_LANGUAGE": "介面語言",
   "LABEL_GAME_FOLDER": "遊戲資料夾",
   "BUTTON_CHOOSE_GAME_FOLDER": "選擇資料夾",
+  "ERROR_MSG_SELECT_KCD2_FOLDER": "請選擇 Kingdom Come: Deliverance II 遊戲資料夾",
   "LABEL_GAME_LANGUAGE": "遊戲語言",
   "LABEL_DOUBLED_LANGUAGE": "搭配的語言",
   "BUTTON_EXPORT": "輸出",

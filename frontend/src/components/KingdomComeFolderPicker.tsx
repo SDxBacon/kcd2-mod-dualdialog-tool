@@ -29,7 +29,7 @@ function KingdomComeFolderPicker({
   return (
     <div className="flex flex-row gap-3 h-[64px]">
       <p className="m-[6px]">{t("LABEL_GAME_FOLDER")}</p>
-      <div className="w-[450px]">
+      <div className="flex-1">
         <Input
           className="text-ellipsis"
           radius="sm"
@@ -38,12 +38,12 @@ function KingdomComeFolderPicker({
           isReadOnly
           onClick={handleButtonPressed}
           isInvalid={isError}
-          errorMessage="請正確選擇 Kingdom Come: Deliverance II 遊戲資料夾"
+          errorMessage={t("ERROR_MSG_SELECT_KCD2_FOLDER")}
         />
       </div>
 
       <Button onPress={handleButtonPressed} size="sm" className="m-[5px]">
-        選擇資料夾
+        {t("BUTTON_CHOOSE_GAME_FOLDER")}
       </Button>
     </div>
   );
