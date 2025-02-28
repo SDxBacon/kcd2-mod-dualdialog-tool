@@ -1,0 +1,15 @@
+{
+  "LABEL_I18N_LANGUAGE": "인터페이스 언어",
+  "LABEL_GAME_FOLDER": "게임 폴더",
+  "BUTTON_CHOOSE_GAME_FOLDER": "폴더 선택",
+  "ERROR_MSG_SELECT_KCD2_FOLDER": "Kingdom Come: Deliverance II 게임 폴더를 선택해 주세요.",
+  "LABEL_GAME_LANGUAGE": "게임 언어",
+  "LABEL_DOUBLED_LANGUAGE": "조합 언어",
+  "BUTTON_EXPORT": "내보내기",
+  "NOTE_1": "현재 제공되는 언어 팩(라틴어 계열 언어, 번체 중국어, 간체 중국어, 일본어, 한국어)은 다른 언어 스크립트에 대해 기본적인 숫자와 기호만 포함하고 있어, 글꼴 지원이 제한됩니다. 현재 지원되는 조합은 다음과 같습니다:",
+  "NOTE_COMB_1": "라틴어 계열 언어 + 라틴어 계열 언어",
+  "NOTE_COMB_2": "아시아 언어 + 라틴어 계열 언어",
+  "NOTE_2": "글꼴 파일을 올바르게 확장하는 방법을 알고 계시면, 저에게 연락해 주세요.",
+  "TOAST_EXPORT_SUCCESS": "모드 파일 Dual Dialog.zip 생성 성공",
+  "TOAST_EXPORT_FAIL": "모드 파일 생성 실패"
+}

@@ -1,0 +1,15 @@
+{
+  "LABEL_I18N_LANGUAGE": "介面語言",
+  "LABEL_GAME_FOLDER": "遊戲資料夾",
+  "BUTTON_CHOOSE_GAME_FOLDER": "選擇資料夾",
+  "ERROR_MSG_SELECT_KCD2_FOLDER": "請選擇 Kingdom Come: Deliverance II 的遊戲資料夾",
+  "LABEL_GAME_LANGUAGE": "遊戲語言",
+  "LABEL_DOUBLED_LANGUAGE": "搭配語言",
+  "BUTTON_EXPORT": "匯出",
+  "NOTE_1": "目前遊戲提供的語言包（拉丁語系、繁體中文、簡體中文、日文、韓文）僅包含基本的數字與符號，對於其他語系的字型支援有限。目前支援的搭配為：",
+  "NOTE_COMB_1": "拉丁語系 + 拉丁語系",
+  "NOTE_COMB_2": "亞洲語系 + 拉丁語系",
+  "NOTE_2": "如果您知道如何正確的擴充字型檔，歡迎與我聯繫。",
+  "TOAST_EXPORT_SUCCESS": "建立模組檔案 Dual Dialog.zip 成功",
+  "TOAST_EXPORT_FAIL": "建立模組檔案失敗"
+}
