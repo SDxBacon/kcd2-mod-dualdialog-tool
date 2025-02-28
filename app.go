@@ -29,6 +29,16 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
+// OpenGitHub opens the GitHub repo page in the default browser
+func (a *App) OpenGitHub() {
+	runtime.BrowserOpenURL(a.ctx, "https://github.com/SDxBacon/kcd2-mod-dualdialog-tool")
+}
+
+// OpenGitHub opens the GitHub repo page in the default browser
+func (a *App) OpenNexusMod() {
+	runtime.BrowserOpenURL(a.ctx, "https://www.nexusmods.com/kingdomcomedeliverance2/mods/656")
+}
+
 // SelectFolder selects KCM2 folder and returns the path
 func (a *App) SelectGameFolder() (string, error) {
 	options := runtime.OpenDialogOptions{

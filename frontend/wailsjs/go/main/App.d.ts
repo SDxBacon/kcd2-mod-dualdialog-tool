@@ -3,4 +3,8 @@
 
 export function CreateModZip(arg1:string,arg2:string):Promise<void>;
 
+export function OpenGitHub():Promise<void>;
+
+export function OpenNexusMod():Promise<void>;
+
 export function SelectGameFolder():Promise<string>;

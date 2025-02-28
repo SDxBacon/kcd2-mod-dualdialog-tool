@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Select, SelectItem } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import GitHubButton from "./GitHubButton";
 import NexusModsButton from "./NexusModsButton";
+
+import { OpenGitHub, OpenNexusMod } from "../../wailsjs/go/main/App";
 import { UILanguage } from "@/i18n";
 
 const i18nLanguages = [
@@ -17,7 +19,6 @@ function Navbar() {
   const { t, i18n } = useTranslation();
 
   const [usedLanguage, setUsedLanguage] = useState(i18nLanguages[0].key);
-  console.log("🚀 ~ Navbar ~ usedLanguage:", usedLanguage);
 
   if (i18n.language !== usedLanguage) i18n.changeLanguage(usedLanguage);
 
@@ -38,16 +39,10 @@ function Navbar() {
         ))}
       </Select>
       {/* Nexus Mod Home Page */}
-      <NexusModsButton
-        size="medium"
-        onClick={() => console.log("GitHub clicked")}
-      />
+      <NexusModsButton size="medium" onClick={OpenNexusMod} />
 
-      <GitHubButton
-        size="medium"
-        onClick={() => console.log("GitHub clicked")}
-      />
       {/* GitHub Home Page */}
+      <GitHubButton size="medium" onClick={OpenGitHub} />
     </div>
   );
 }
