@@ -46,9 +46,8 @@ function LanguageSelect({
 
   const handleChanged: React.ChangeEventHandler<HTMLSelectElement> = (evt) => {
     const key = evt.target.value as Language;
-    const language = usedOptions.find((language) => language.key === key);
-    if (language && onSelect) {
-      onSelect(language.key);
+    if (onSelect && usedOptions.find((language) => language.key === key)) {
+      onSelect(key);
     }
   };
 
@@ -56,7 +55,7 @@ function LanguageSelect({
     <Select
       // className="max-w-xs"
       label={label}
-      value={value}
+      selectedKeys={value ? [value] : []}
       disabledKeys={disabledKeys}
       onChange={handleChanged}
     >

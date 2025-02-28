@@ -1,13 +1,14 @@
 import { useState, useCallback } from "react";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Card, CardBody } from "@heroui/react";
-import { Language, Languages } from "@/constants/languages";
+import { Language } from "@/constants/languages";
 import Navbar from "@/components/Navbar";
 import ExportButton from "@/components/ExportButton";
 import LanguageSelect from "@/components/LanguageSelect";
 import KingdomComeFolderPicker from "@/components/KingdomComeFolderPicker";
 // improt hooks & utilities
 import isNil from "lodash/isNil";
+import isEmpty from "lodash/isEmpty";
 import useExport from "@/hooks/useExport";
 // import css
 import "./App.css";
@@ -20,36 +21,33 @@ function App() {
 
   const [folder, setFolder] = useState("");
   const [isFolderError, setIsFolderError] = useState(false);
-  const [mainLanguage, setMainLanguage] = useState<Language | null>(null);
-  const [subLanguage, setSubLanguage] = useState<Language | null>(null);
+  const [mainLanguage, setMainLanguage] = useState<Language | undefined>();
+  const [subLanguage, setSubLanguage] = useState<Language | undefined>();
 
   // disabled main language keys
   const disabledSubLanguageKeys = isNil(mainLanguage) ? [] : [mainLanguage];
 
   // check if export button is disabled
   const isExportButtonDisabled =
-    isNil(mainLanguage) || isNil(subLanguage) || !folder;
+    isNil(mainLanguage) || isNil(subLanguage) || isEmpty(folder);
 
   const startExport = useExport();
 
   const handleExportButtonPress = useCallback(() => {
     if (!mainLanguage || !subLanguage) {
-      setIsExporting(true);
-      startExport(
-        Languages.ChineseTraditional,
-        Languages.ChineseSimplified
-      ).then(() => {
-        setIsExporting(false);
-      });
       return;
     }
 
-    startExport(mainLanguage, subLanguage);
-  }, [startExport]);
+    setIsExporting(true);
+
+    startExport(mainLanguage, subLanguage).then(() => {
+      setIsExporting(false);
+    });
+  }, [startExport, mainLanguage, subLanguage]);
 
   const handleMainLanguageSelect = useCallback((language: Language) => {
     setMainLanguage(language);
-    setSubLanguage(null); // reset sub language
+    setSubLanguage(undefined); // reset sub language
   }, []);
 
   const handleSubLanguageSelect = useCallback((language: Language) => {
@@ -74,11 +72,13 @@ function App() {
       <div className="flex w-full flex-wrap md:flex-nowrap gap-4 items-center">
         <LanguageSelect
           label={t("LABEL_GAME_LANGUAGE")}
+          value={mainLanguage}
           disabledKeys={mainLanguage ? [mainLanguage] : undefined}
           onSelect={handleMainLanguageSelect}
         />
         <LanguageSelect
           label={t("LABEL_DOUBLED_LANGUAGE")}
+          value={subLanguage}
           onSelect={handleSubLanguageSelect}
           disabledKeys={disabledSubLanguageKeys}
           hideAsianLanguages
