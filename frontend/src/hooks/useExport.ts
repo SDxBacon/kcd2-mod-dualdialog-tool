@@ -1,20 +1,23 @@
-import { useCallback } from "react";
 import { addToast } from "@heroui/react";
+import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Language } from "../constants/languages";
 import { CreateModZip } from "../../wailsjs/go/main/App";
 
 function useExport() {
+  const { t } = useTranslation();
+
   return useCallback((main: Language, sub: Language) => {
-    CreateModZip(main, sub)
+    return CreateModZip(main, sub)
       .then(() => {
         addToast({
-          title: "Create Mod ZIP Done",
           color: "success",
+          title: t("TOAST_EXPORT_SUCCESS"),
         });
       })
       .catch((err) => {
         addToast({
-          title: "Create Mod ZIP Failed",
+          title: t("TOAST_EXPORT_FAILED"),
           color: "danger",
         });
       });

@@ -3,19 +3,21 @@ import { Select, SelectItem } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import GitHubButton from "./GitHubButton";
 import NexusModsButton from "./NexusModsButton";
+import { UILanguage } from "@/i18n";
 
 const i18nLanguages = [
-  { key: "en", label: "English" },
-  { key: "zh_tw", label: "繁體中文" },
-  { key: "zh_cn", label: "简体中文" },
-  { key: "ja", label: "日本語" },
-  { key: "ko", label: "한국어" },
+  { key: UILanguage.EN, label: "English" },
+  { key: UILanguage.ZH_TW, label: "繁體中文" },
+  { key: UILanguage.ZH_CN, label: "简体中文" },
+  { key: UILanguage.JA, label: "日本語" },
+  { key: UILanguage.KR, label: "한국어" },
 ];
 
 function Navbar() {
   const { t, i18n } = useTranslation();
 
   const [usedLanguage, setUsedLanguage] = useState(i18nLanguages[0].key);
+  console.log("🚀 ~ Navbar ~ usedLanguage:", usedLanguage);
 
   if (i18n.language !== usedLanguage) i18n.changeLanguage(usedLanguage);
 
@@ -26,7 +28,7 @@ function Navbar() {
       <Select
         className="min-w-[120px] w-30"
         size="sm"
-        value={usedLanguage}
+        selectedKeys={[usedLanguage]}
         variant="bordered"
         fullWidth={false}
         onChange={(e) => setUsedLanguage(e.target.value)}

@@ -9,5 +9,7 @@
   "NOTE_1": "The currently available language packs (Latin-based languages, Traditional Chinese, Simplified Chinese, Japanese, Korean) only include basic numbers and symbols for other language scripts, resulting in limited font support. The supported combinations are:",
   "NOTE_COMB_1": "Latin-based language + Latin-based language",
   "NOTE_COMB_2": "Asian language + Latin-based language",
-  "NOTE_2": "If you know how to properly expand the font files, feel free to contact me."
+  "NOTE_2": "If you know how to properly expand the font files, feel free to contact me.",
+  "TOAST_EXPORT_SUCCESS": "Successfully created the mod file Dual Dialog.zip",
+  "TOAST_EXPORT_FAIL": "Failed to create the mod file"
 }

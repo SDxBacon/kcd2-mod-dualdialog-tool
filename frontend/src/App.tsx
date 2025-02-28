@@ -16,6 +16,8 @@ import "./i18n";
 function App() {
   const { t } = useTranslation();
 
+  const [isExporting, setIsExporting] = useState(false);
+
   const [folder, setFolder] = useState("");
   const [isFolderError, setIsFolderError] = useState(false);
   const [mainLanguage, setMainLanguage] = useState<Language | null>(null);
@@ -32,8 +34,13 @@ function App() {
 
   const handleExportButtonPress = useCallback(() => {
     if (!mainLanguage || !subLanguage) {
-      // fixme:
-      startExport(Languages.ChineseTraditional, Languages.ChineseSimplified);
+      setIsExporting(true);
+      startExport(
+        Languages.ChineseTraditional,
+        Languages.ChineseSimplified
+      ).then(() => {
+        setIsExporting(false);
+      });
       return;
     }
 
@@ -53,6 +60,7 @@ function App() {
     <div id="App" className="bg-gray-800 h-screen px-[100px] pb-11 pt-4 ">
       {/* Navbar */}
       <Navbar />
+
       <KingdomComeFolderPicker
         value={folder}
         isError={isFolderError}
@@ -92,10 +100,11 @@ function App() {
       </div>
 
       <ExportButton
+        isLoading={isExporting}
         onPress={handleExportButtonPress}
         isDisabled={isExportButtonDisabled}
       >
-        {t("BUTTON_EXPORT")}
+        {!isExporting && t("BUTTON_EXPORT")}
       </ExportButton>
     </div>
   );
