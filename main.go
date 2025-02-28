@@ -19,7 +19,7 @@ func main() {
 	err := wails.Run(&options.App{
 		Title:  "KCD2-mod-dualdialog-tool",
 		Width:  904,
-		Height: 488,
+		Height: 515,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},

@@ -1,3 +1,13 @@
 {
-  "NOTE": "目前遊戲所提供的語系包（拉丁、繁體中文、簡體中文、日文、韓文），對於其他語系的字型只打包了最簡單的數字、符號。如果您知道擴充字型檔，歡迎與我聯繫。"
+  "LABEL_I18N_LANGUAGE": "Interface Language",
+  "LABEL_GAME_FOLDER": "Game Folder",
+  "BUTTON_CHOOSE_GAME_FOLDER": "Select Folder",
+  "ERROR_MSG_SELECT_KCD2_FOLDER": "Please select the Kingdom Come: Deliverance II game folder.",
+  "LABEL_GAME_LANGUAGE": "Game Language",
+  "LABEL_DOUBLED_LANGUAGE": "Paired Language",
+  "BUTTON_EXPORT": "Export",
+  "NOTE_1": "The currently available language packs (Latin-based languages, Traditional Chinese, Simplified Chinese, Japanese, Korean) only include basic numbers and symbols for other language scripts, resulting in limited font support. The supported combinations are:",
+  "NOTE_COMB_1": "Latin-based language + Latin-based language",
+  "NOTE_COMB_2": "Asian language + Latin-based language",
+  "NOTE_2": "If you know how to properly expand the font files, feel free to contact me."
 }

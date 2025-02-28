@@ -34,7 +34,7 @@ function KingdomComeFolderPicker({
           className="text-ellipsis"
           radius="sm"
           value={value}
-          placeholder="e.g. C:/Steam/steamapps/common/KingdomComeDeliverance2"
+          placeholder="e.g. /steamapps/common/KingdomComeDeliverance2"
           isReadOnly
           onClick={handleButtonPressed}
           isInvalid={isError}

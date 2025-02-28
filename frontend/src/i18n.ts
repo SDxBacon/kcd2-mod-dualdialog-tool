@@ -1,7 +1,10 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import ZH_TW from "./locales/zh-tw.json";
+import ZH_CN from "./locales/zh-cn.json";
 import EN from "./locales/en.json";
+import JA from "./locales/ja.json";
+import KR from "./locales/kr.json";
 
 i18n
   .use(initReactI18next) // passes i18n down to react-i18next
@@ -15,6 +18,15 @@ i18n
       },
       zh_tw: {
         translation: ZH_TW,
+      },
+      zh_cn: {
+        translation: ZH_CN,
+      },
+      ja: {
+        translation: JA,
+      },
+      kr: {
+        translation: KR,
       },
     },
     lng: "zh_tw", // if you're using a language detector, do not define the lng option

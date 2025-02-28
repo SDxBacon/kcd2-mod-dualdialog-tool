@@ -1,0 +1,13 @@
+{
+  "LABEL_I18N_LANGUAGE": "インターフェース言語",
+  "LABEL_GAME_FOLDER": "ゲームフォルダー",
+  "BUTTON_CHOOSE_GAME_FOLDER": "フォルダーを選択",
+  "ERROR_MSG_SELECT_KCD2_FOLDER": "Kingdom Come: Deliverance II のゲームフォルダーを選択してください。",
+  "LABEL_GAME_LANGUAGE": "ゲーム言語",
+  "LABEL_DOUBLED_LANGUAGE": "ペア言語",
+  "BUTTON_EXPORT": "エクスポート",
+  "NOTE_1": "現在提供されている言語パック（ラテン系言語、繁体字中国語、簡体字中国語、日本語、韓国語）には、他の言語スクリプト向けのフォントとして基本的な数字と記号しか含まれていません。そのため、現在サポートされている組み合わせは以下の通りです：",
+  "NOTE_COMB_1": "ラテン系言語 + ラテン系言語",
+  "NOTE_COMB_2": "アジア系言語 + ラテン系言語",
+  "NOTE_2": "フォントファイルを適切に拡張する方法をご存知の方は、ご連絡ください。"
+}
