@@ -15,7 +15,7 @@ function useExport() {
           title: t("TOAST_EXPORT_SUCCESS"),
         });
       })
-      .catch((err) => {
+      .catch(() => {
         addToast({
           title: t("TOAST_EXPORT_FAILED"),
           color: "danger",
