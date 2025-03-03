@@ -30,7 +30,7 @@ You can download **Dual Dialog** from the following platforms:
 4. **Extract the Files**: Unzip the contents of *Dual Dialog.zip* into your *Kingdom Come: Deliverance 2* `Mods` folder (e.g., `C:\Program Files (x86)\Steam\steamapps\common\KingdomComeDeliverance2\Mods`). If the `Mods` folder doesn’t exist, create it manually.
 5. **Start the Game**: Launch *Kingdom Come: Deliverance 2* and enjoy NPC dialogues in both your chosen languages!
 
-![Imgur](https://i.imgur.com/3jKd5ry.png)
+![Imgur](https://i.imgur.com/E8MLmge.gif)
 
 ## Suggested Language Combination
 
