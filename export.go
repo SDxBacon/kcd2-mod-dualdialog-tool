@@ -425,18 +425,12 @@ func ProcessAndExportModZip(mainLanguage string, subLanguage string, outputFolde
 	}
 
 	// Add mod.manifest to the output zip
-	manifestFile, err := os.Open("./mod.manifest")
-	if err != nil {
-		return fmt.Errorf("failed to open manifest file: %w", err)
-	}
-	defer manifestFile.Close()
-
 	writer, err = outputZipWriter.Create("mod.manifest")
 	if err != nil {
 		return fmt.Errorf("failed to create manifest entry in zip: %w", err)
 	}
 
-	_, err = io.Copy(writer, manifestFile)
+	_, err = io.WriteString(writer, manifest)
 	if err != nil {
 		return fmt.Errorf("failed to write manifest to zip: %w", err)
 	}
