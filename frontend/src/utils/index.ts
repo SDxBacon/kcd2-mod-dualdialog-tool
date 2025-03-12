@@ -12,6 +12,7 @@ export function isLatin(language: Language) {
     case Languages.Turkish:
     case Languages.Ukrainian:
     case Languages.Russian:
+    case Languages.Czech:
       return true;
     default:
       return false;
