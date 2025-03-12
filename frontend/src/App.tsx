@@ -77,7 +77,7 @@ function App() {
           onSelect={handleMainLanguageSelect}
         />
         <LanguageSelect
-          label={t("LABEL_DOUBLED_LANGUAGE")}
+          label={t("LABEL_PAIRED_LANGUAGE")}
           value={subLanguage}
           onSelect={handleSubLanguageSelect}
           disabledKeys={disabledSubLanguageKeys}
