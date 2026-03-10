@@ -169,8 +169,11 @@ func createSubLangMap(data []byte) (map[string]string, error) {
 		numWorkers = 8 // 限制最大核心數，避免過度競爭
 	}
 
-	// 分割數據為多行
-	lines := bytes.Split(data, []byte("\n"))
+	// 編譯正則表達式，(?s) 使 '.' 可以匹配換行符，支援多行 <Cell> 內容
+	regexPattern := regexp.MustCompile(`(?s)<Row><Cell>(.*?)</Cell><Cell>.*?</Cell><Cell>(.*?)</Cell></Row>`)
+
+	// 一次性匹配所有 <Row> 條目（修復多行 Cell 丟失問題）
+	allMatches := regexPattern.FindAllSubmatch(data, -1)
 
 	// 創建互斥鎖保護 map 寫入
 	var mutex sync.Mutex
@@ -178,11 +181,8 @@ func createSubLangMap(data []byte) (map[string]string, error) {
 	// 創建 WaitGroup 來同步 goroutines
 	var wg sync.WaitGroup
 
-	// 計算每個 worker 處理的行數
-	batchSize := (len(lines) + numWorkers - 1) / numWorkers
-
-	// 編譯正則表達式 - 每個 goroutine 共用同一個編譯好的正則表達式
-	regexPattern := regexp.MustCompile(`<Row><Cell>(.*?)</Cell><Cell>.*?</Cell><Cell>(.*?)</Cell></Row>`)
+	// 計算每個 worker 處理的匹配數量
+	batchSize := (len(allMatches) + numWorkers - 1) / numWorkers
 
 	// 啟動多個 worker
 	for w := 0; w < numWorkers; w++ {
@@ -190,8 +190,8 @@ func createSubLangMap(data []byte) (map[string]string, error) {
 
 		start := w * batchSize
 		end := start + batchSize
-		if end > len(lines) {
-			end = len(lines)
+		if end > len(allMatches) {
+			end = len(allMatches)
 		}
 
 		go func(start, end int) {
@@ -201,15 +201,7 @@ func createSubLangMap(data []byte) (map[string]string, error) {
 			localMap := make(map[string]string)
 
 			for i := start; i < end; i++ {
-				line := lines[i]
-
-				// 快速檢查以跳過不相關的行
-				if !bytes.Contains(line, []byte("<Row>")) {
-					continue
-				}
-
-				// 應用正則表達式
-				matches := regexPattern.FindSubmatch(line)
+				matches := allMatches[i]
 				if len(matches) >= 3 {
 					localMap[string(matches[1])] = string(matches[2])
 				}
@@ -237,11 +229,11 @@ func createZipBufferByLanguage(mainData []byte, subData []byte) ([]byte, error) 
 		return nil, fmt.Errorf("failed to create sublang map: %w", err)
 	}
 
-	// 主正則表達式
-	regexPattern := regexp.MustCompile(`<Row><Cell>(.*?)</Cell><Cell>(.*?)</Cell><Cell>(.*?)</Cell></Row>`)
+	// 主正則表達式，(?s) 使 '.' 可以匹配換行符，支援多行 <Cell> 內容
+	regexPattern := regexp.MustCompile(`(?s)<Row><Cell>(.*?)</Cell><Cell>(.*?)</Cell><Cell>(.*?)</Cell></Row>`)
 
-	// 分割資料為多行
-	lines := bytes.Split(mainData, []byte("\n"))
+	// 一次性匹配所有主語言的 <Row> 條目（修復多行 Cell 丟失問題）
+	allMatches := regexPattern.FindAllSubmatch(mainData, -1)
 
 	// 計算要使用的 CPU 核心數
 	numWorkers := runtime.NumCPU()
@@ -251,13 +243,13 @@ func createZipBufferByLanguage(mainData []byte, subData []byte) ([]byte, error) 
 		index int
 		line  string
 	}
-	resultChan := make(chan Result, len(lines))
+	resultChan := make(chan Result, len(allMatches))
 
 	// 創建一個 WaitGroup 來等待所有 goroutines 完成
 	var wg sync.WaitGroup
 
-	// 將行分批處理
-	batchSize := (len(lines) + numWorkers - 1) / numWorkers
+	// 將匹配結果分批處理
+	batchSize := (len(allMatches) + numWorkers - 1) / numWorkers
 
 	for w := 0; w < numWorkers; w++ {
 		wg.Add(1)
@@ -265,8 +257,8 @@ func createZipBufferByLanguage(mainData []byte, subData []byte) ([]byte, error) 
 		// 計算這個 worker 的起始和結束位置
 		start := w * batchSize
 		end := start + batchSize
-		if end > len(lines) {
-			end = len(lines)
+		if end > len(allMatches) {
+			end = len(allMatches)
 		}
 
 		// 啟動 worker goroutine
@@ -274,20 +266,11 @@ func createZipBufferByLanguage(mainData []byte, subData []byte) ([]byte, error) 
 			defer wg.Done()
 
 			for i := start; i < end; i++ {
-				line := string(lines[i])
-
-				// 忽略不含 <Row> 的行
-				if !strings.Contains(line, "<Row>") {
-					continue
-				}
-
-				// 對每行應用正則表達式
-				matches := regexPattern.FindStringSubmatch(line)
+				matches := allMatches[i]
 				if len(matches) >= 4 {
-					fullMatch := matches[0]
-					col1 := matches[1]
-					col2 := matches[2]
-					col3 := matches[3]
+					col1 := string(matches[1])
+					col2 := string(matches[2])
+					col3 := string(matches[3])
 
 					textInSubData, exists := mapSubLang[col1]
 
@@ -295,7 +278,8 @@ func createZipBufferByLanguage(mainData []byte, subData []byte) ([]byte, error) 
 
 					// 應用條件
 					if !exists || isNearlyContained(col3, textInSubData) || col3 == textInSubData {
-						processedLine = fullMatch + "\n"
+						processedLine = fmt.Sprintf("<Row><Cell>%s</Cell><Cell>%s</Cell><Cell>%s</Cell></Row>\n",
+							col1, col2, col3)
 					} else {
 						processedLine = fmt.Sprintf("<Row><Cell>%s</Cell><Cell>%s</Cell><Cell>%s\\n%s</Cell></Row>\n",
 							col1, col2, col3, textInSubData)
@@ -315,7 +299,7 @@ func createZipBufferByLanguage(mainData []byte, subData []byte) ([]byte, error) 
 	}()
 
 	// 收集結果
-	results := make([]string, len(lines)) // 預分配足夠空間
+	results := make([]string, len(allMatches)) // 預分配足夠空間
 	var counter int
 
 	for result := range resultChan {
